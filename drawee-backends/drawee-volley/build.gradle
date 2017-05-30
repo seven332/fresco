@@ -1,7 +1,6 @@
 apply plugin: 'com.android.library'
 
 project.group = GROUP
-version = VERSION_NAME
 
 dependencies {
     provided "com.android.support:support-core-utils:${SUPPORT_LIB_VERSION}"

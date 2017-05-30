@@ -2,7 +2,6 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 
 project.group = GROUP
-version = VERSION_NAME
 
 dependencies {
     provided "javax.annotation:javax.annotation-api:${ANNOTATION_API_VERSION}"
@@ -13,7 +12,7 @@ dependencies {
     androidTestCompile 'com.android.support.test:runner:0.4'
     androidTestCompile 'com.android.support.test:rules:0.4'
     compile project(':fbcore')
-    compile project(':imagepipeline-base')
+    compile project(':imagepipeline')
 }
 apply from: rootProject.file('release.gradle')
 
