@@ -12,6 +12,7 @@ package com.facebook.drawee.interfaces;
 import javax.annotation.Nullable;
 
 import android.graphics.drawable.Animatable;
+import android.graphics.drawable.Drawable;
 import android.view.MotionEvent;
 
 /**
@@ -51,6 +52,11 @@ public interface DraweeController {
    * @return true if the event was handled by the controller, false otherwise
    */
   boolean onTouchEvent(MotionEvent event);
+
+  /**
+   * Gets the drawable.
+   */
+  Drawable getDrawable();
 
   /**
    * For an animated image, returns an Animatable that lets clients control the animation.

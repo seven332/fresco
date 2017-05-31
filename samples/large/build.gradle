@@ -1,0 +1,23 @@
+apply plugin: 'com.android.application'
+
+android {
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.hippo.fresco.large.demo"
+        minSdkVersion 11
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "${VERSION_NAME}"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+}
+
+dependencies {
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile project(':fresco-large')
+
+    testCompile 'junit:junit:4.12'
+}

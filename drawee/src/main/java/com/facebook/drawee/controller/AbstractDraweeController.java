@@ -628,6 +628,11 @@ public abstract class AbstractDraweeController<T, INFO> implements
   }
 
   @Override
+  public @Nullable Drawable getDrawable() {
+    return mDrawable;
+  }
+
+  @Override
   public @Nullable Animatable getAnimatable() {
     return (mDrawable instanceof Animatable) ? (Animatable) mDrawable : null;
   }

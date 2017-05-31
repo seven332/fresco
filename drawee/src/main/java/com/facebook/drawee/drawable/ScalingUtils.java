@@ -130,6 +130,30 @@ public class ScalingUtils {
     return null;
   }
 
+  @Nullable
+  public static Scaled getActiveScaled(Drawable drawable) {
+    if (drawable == null) {
+      return null;
+    } else if (drawable instanceof Scaled) {
+      return (Scaled) drawable;
+    } else if (drawable instanceof DrawableParent) {
+      final Drawable childDrawable = ((DrawableParent) drawable).getDrawable();
+      return getActiveScaled(childDrawable);
+    } else if (drawable instanceof ArrayDrawable) {
+      final ArrayDrawable fadeDrawable = (ArrayDrawable) drawable;
+      final int numLayers = fadeDrawable.getNumberOfLayers();
+
+      for (int i = 0; i < numLayers; i++) {
+        final Drawable childDrawable = fadeDrawable.getDrawable(i);
+        final Scaled result = getActiveScaled(childDrawable);
+        if (result != null) {
+          return result;
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * A convenience base class that has some common logic.
    */

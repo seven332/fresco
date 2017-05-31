@@ -1,0 +1,27 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven'
+
+project.group = GROUP
+
+dependencies {
+    provided "com.google.code.findbugs:jsr305:${JSR_305_VERSION}"
+    compile project(':drawee-backends:drawee-pipeline')
+
+    testCompile 'junit:junit:4.12'
+}
+
+apply from: rootProject.file('release.gradle')
+
+android {
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    lintOptions {
+        abortOnError false
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+artifacts.add('archives', sourcesJar)

@@ -163,6 +163,17 @@ public class ScaleTypeDrawable extends ForwardingDrawable {
     int underlyingWidth = mUnderlyingWidth = underlyingDrawable.getIntrinsicWidth();
     int underlyingHeight = mUnderlyingHeight = underlyingDrawable.getIntrinsicHeight();
 
+    // If the active drawable is scaled, let it scale itself
+    Scaled scaled = getActiveScaled(underlyingDrawable);
+    if (scaled != null) {
+      scaled.setScaleType(mScaleType);
+      scaled.setFocusPoint(mFocusPoint);
+      underlyingDrawable.setBounds(bounds);
+      scaled.applyScaleType();
+      mDrawMatrix = null;
+      return;
+    }
+
     // If the drawable has no intrinsic size, we just fill our entire view.
     if (underlyingWidth <= 0 || underlyingHeight <= 0) {
       underlyingDrawable.setBounds(bounds);

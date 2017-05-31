@@ -125,6 +125,10 @@ public class ImagePipelineFactory {
         config.getExecutorSupplier().forLightweightBackgroundTasks());
   }
 
+  public ImagePipelineConfig getConfig() {
+    return mConfig;
+  }
+
   public AnimatedFactory getAnimatedFactory() {
     if (mAnimatedFactory == null) {
       mAnimatedFactory = AnimatedFactoryProvider.getAnimatedFactory(
@@ -178,7 +182,7 @@ public class ImagePipelineFactory {
     return mEncodedMemoryCache;
   }
 
-  private ImageDecoder getImageDecoder() {
+  public ImageDecoder getImageDecoder() {
     if (mImageDecoder == null) {
       if (mConfig.getImageDecoder() != null) {
         mImageDecoder = mConfig.getImageDecoder();
