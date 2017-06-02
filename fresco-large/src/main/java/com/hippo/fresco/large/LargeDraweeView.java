@@ -10,7 +10,6 @@ import android.content.Context;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewParent;
 
@@ -19,8 +18,6 @@ import com.facebook.drawee.controller.BaseControllerListener;
 import com.facebook.drawee.controller.ControllerListener;
 import com.facebook.drawee.drawable.ArrayDrawable;
 import com.facebook.drawee.drawable.DrawableParent;
-import com.facebook.drawee.drawable.ForwardingDrawable;
-import com.facebook.drawee.drawable.Scaled;
 import com.facebook.drawee.generic.GenericDraweeHierarchy;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
@@ -175,11 +172,21 @@ public class LargeDraweeView extends SimpleDraweeView implements GestureRecogniz
 
   @Override
   public void onScale(float factor, float x, float y) {
-
+    if (transform != null) {
+      if (transform.scale(factor, x, y)) {
+        requestDisallowInterceptTouchEvent();
+      }
+    }
   }
 
   @Override
-  public void onRotate(float angle, float x, float y) {}
+  public void onRotate(float angle, float x, float y) {
+    if (transform != null) {
+      if (transform.rotate(angle, x, y)) {
+        requestDisallowInterceptTouchEvent();
+      }
+    }
+  }
 
   @Nullable
   private static Animatable getActiveAnimatable(Drawable drawable) {
