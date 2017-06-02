@@ -31,7 +31,7 @@ import com.facebook.drawee.drawable.ScalingUtils;
 
 import com.hippo.fresco.large.decoder.ImageRegionDecoder;
 
-public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWithCaches {
+public class SubsamplingDrawable extends Drawable implements Transformed, DrawableWithCaches {
 
   private static final boolean DEBUG = false;
 
@@ -100,6 +100,7 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
     }
   }
 
+  @Override
   public void translate(float dx, float dy) {
     matrix.postTranslate(dx, dy);
     matrixValueDirty = true;
@@ -107,6 +108,7 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
     invalidateSelf();
   }
 
+  @Override
   public void scale(float sx, float sy, float px, float py) {
     matrix.postScale(sx, sy, px, py);
     matrixValueDirty = true;
@@ -114,11 +116,17 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
     invalidateSelf();
   }
 
+  @Override
   public void rotate(float degrees, float px, float py) {
     matrix.postRotate(degrees, px, py);
     matrixValueDirty = true;
     invertedMatrixDirty = true;
     invalidateSelf();
+  }
+
+  @Override
+  public Matrix getMatrix() {
+    return matrix;
   }
 
   @Override

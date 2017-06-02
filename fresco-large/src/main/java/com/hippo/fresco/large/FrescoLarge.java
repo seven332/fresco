@@ -9,21 +9,25 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Set;
 
+import android.content.Context;
+
 import com.facebook.common.logging.FLog;
 import com.facebook.drawee.backends.pipeline.DraweeConfig;
 import com.facebook.imageformat.ImageFormat;
 import com.facebook.imagepipeline.decoder.ImageDecoderConfig;
 
 import com.hippo.fresco.large.decoder.ImageRegionDecoderFactory;
-import com.hippo.fresco.large.drawable.LargeDrawableFactory;
 
 public final class FrescoLarge {
   private FrescoLarge() {}
 
   private static final Class<?> TAG = FrescoLarge.class;
 
-  public static void config(@Nonnull ImageDecoderConfig.Builder decoderConfigBuilder,
-      @Nonnull DraweeConfig.Builder draweeConfigBuilder, @Nonnull FrescoLargeConfig config) {
+  public static void config(
+      @Nonnull Context context,
+      @Nonnull ImageDecoderConfig.Builder decoderConfigBuilder,
+      @Nonnull DraweeConfig.Builder draweeConfigBuilder,
+      @Nonnull FrescoLargeConfig config) {
     Set<ImageFormat> imageFormatSet = config.getImageFormatSet();
     if (imageFormatSet == null || imageFormatSet.isEmpty()) {
       FLog.w(TAG, "No ImageFormat");
@@ -34,12 +38,6 @@ public final class FrescoLarge {
         config.getImageRegionDecoderFactoryMap();
     if (regionDecoderFactoryMap == null || regionDecoderFactoryMap.isEmpty()) {
       FLog.w(TAG, "No ImageRegionDecoderFactory");
-      return;
-    }
-
-    LargeDrawableFactory factory = config.getLargeDrawableFactory();
-    if (factory == null) {
-      FLog.w(TAG, "No LargeDrawableFactory");
       return;
     }
 
@@ -61,6 +59,6 @@ public final class FrescoLarge {
       decoderConfigBuilder.overrideDecoder(imageFormat, largeImageDecoder);
     }
 
-    draweeConfigBuilder.addCustomDrawableFactory(config.getLargeDrawableFactory());
+    draweeConfigBuilder.addCustomDrawableFactory(new LargeDrawableFactory(context));
   }
 }

@@ -31,7 +31,7 @@ public class DemoApp extends Application {
 
     ImageDecoderConfig.Builder decoderConfigBuilder = ImageDecoderConfig.newBuilder();
     DraweeConfig.Builder draweeConfigBuilder = DraweeConfig.newBuilder();
-    FrescoLarge.config(decoderConfigBuilder, draweeConfigBuilder, builder.build());
+    FrescoLarge.config(this, decoderConfigBuilder, draweeConfigBuilder, builder.build());
 
     ImagePipelineConfig imagePipelineConfig = ImagePipelineConfig
         .newBuilder(this)
