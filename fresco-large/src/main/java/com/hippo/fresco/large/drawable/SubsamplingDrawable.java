@@ -241,8 +241,7 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
   }
 
   private Rect getVisibleRect() {
-    visibleRectF.set(windowOffsetX, windowOffsetY,
-        windowOffsetX + windowWidth, windowOffsetY + windowHeight);
+    visibleRectF.set(0, 0, windowWidth, windowHeight);
     Matrix matrix = getInvertedMatrix();
     matrix.mapRect(visibleRectF);
 
@@ -296,7 +295,13 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
   @Override
   public void draw(@Nonnull Canvas canvas) {
     if (windowWidth > 0 && windowHeight > 0) {
+      if (windowOffsetX != 0 || windowOffsetY != 0) {
+        canvas.translate(windowOffsetX, windowOffsetY);
+      }
       drawTiles(canvas);
+      if (windowOffsetX != 0 || windowOffsetY != 0) {
+        canvas.translate(-windowOffsetX, -windowOffsetY);
+      }
     }
   }
 
