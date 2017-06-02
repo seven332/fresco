@@ -14,13 +14,11 @@ import com.hippo.fresco.large.decoder.ImageRegionDecoder;
 public class CloseableLargeImage extends CloseableImage {
 
   private CloseableReference<ImageRegionDecoder> decoderReference;
-  private final int length;
   private final int width;
   private final int height;
 
-  public CloseableLargeImage(ImageRegionDecoder decoder, int length) {
+  public CloseableLargeImage(ImageRegionDecoder decoder) {
     this.decoderReference = CloseableReference.of(decoder);
-    this.length = length >= 0 ? length : 0;
     this.width = decoder.getWidth();
     this.height = decoder.getHeight();
   }
@@ -42,7 +40,7 @@ public class CloseableLargeImage extends CloseableImage {
 
   @Override
   public int getSizeInBytes() {
-    return length;
+    return decoderReference.get().getSize();
   }
 
   @Override

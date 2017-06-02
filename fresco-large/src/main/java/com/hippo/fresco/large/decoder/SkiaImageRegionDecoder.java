@@ -11,7 +11,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
 import android.graphics.Rect;
 
-public class SkiaImageRegionDecoder implements ImageRegionDecoder {
+public class SkiaImageRegionDecoder extends ImageRegionDecoder {
 
   private BitmapRegionDecoder decoder;
 
@@ -39,6 +39,7 @@ public class SkiaImageRegionDecoder implements ImageRegionDecoder {
 
   @Override
   public void close() {
+    super.close();
     decoder.recycle();
   }
 }

@@ -4,6 +4,7 @@ apply plugin: 'maven'
 project.group = GROUP
 
 dependencies {
+    provided "com.android.support:support-core-utils:${SUPPORT_LIB_VERSION}"
     provided "com.google.code.findbugs:jsr305:${JSR_305_VERSION}"
     compile project(':drawee-backends:drawee-pipeline')
 

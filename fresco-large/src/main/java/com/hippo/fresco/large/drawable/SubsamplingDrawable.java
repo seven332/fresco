@@ -22,7 +22,6 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.util.SparseArray;
 
 import com.facebook.common.references.CloseableReference;
@@ -37,7 +36,8 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
   private static final boolean DEBUG = false;
 
   private static final int MAX_TILE_SIZE = 512;
-  private static final int FULL_SIZE = MAX_TILE_SIZE * 2;
+
+  private static final int INVALID_SAMPLE = -1;
 
   private ImageRegionDecoder decoder;
   private DecoderReleaser releaser;
@@ -63,21 +63,14 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
   private int windowOffsetY;
 
   // The visible rect of the image
-  private RectF visibleRectF = new RectF();
-  private Rect visibleRect = new Rect();
+  private final RectF visibleRectF = new RectF();
+  private final Rect visibleRect = new Rect();
 
-  // Sample for current rendered image
-  private int currentSample;
-  // Sample for image fill windows
-  private int fullSample;
-  // Whether draw full sample tiles
-  private boolean drawFullSampleTiles;
+  private final PreviewTile preview;
+  private final int previewSample;
+
+  private int currentSample = INVALID_SAMPLE;
   private final SparseArray<List<Tile>> tilesMap = new SparseArray<>();
-
-  // Full sample tiles count
-  private int fullSampleSize;
-  // Decoded full sample tiles count
-  private int fullSampleDecoderSize;
 
   private float[] debugPoints;
   private float[] debugLines;
@@ -94,7 +87,8 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
     width = decoder.getWidth();
     height = decoder.getHeight();
 
-    setUpFullTiles();
+    previewSample = decoder.getPreviewSample();
+    preview = new PreviewTile(decoder.getPreview(), previewSample);
 
     if (DEBUG) {
       debugPoints = new float[8];
@@ -103,24 +97,6 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
       debugPaint.setStyle(Paint.Style.STROKE);
       debugPaint.setStrokeWidth(3);
       debugPaint.setColor(Color.RED);
-    }
-  }
-
-  private void setUpFullTiles() {
-    // Get the sample to fill window
-    int fullSample = calculateSample(width / FULL_SIZE, height / FULL_SIZE);
-    this.fullSample = fullSample;
-
-    // Get the tile list to fill window
-    List<Tile> fullTileList = createTileList(fullSample);
-    tilesMap.put(fullSample, fullTileList);
-
-    fullSampleDecoderSize = 0;
-    fullSampleSize = fullTileList.size();
-
-    // Ensure the fill-window tiles list loaded
-    for (Tile tile : fullTileList) {
-      tile.load();
     }
   }
 
@@ -175,10 +151,6 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
     windowOffsetY = bounds.top;
   }
 
-  private static int calculateSample(int scaleX, int scaleY) {
-    return calculateSample(Math.max(scaleX, scaleY));
-  }
-
   private static int calculateSample(int scale) {
     int sample = Math.max(1, scale);
     return prevPow2(sample);
@@ -192,9 +164,7 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
         continue;
       }
 
-      if (sample == fullSample) {
-        // Always keep it
-      } else if (sample == currentSample) {
+      if (sample == currentSample) {
         // Only recycle invisible tiles for current sample
         for (Tile tile : list) {
           if (!tile.isVisible()) {
@@ -250,11 +220,23 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
   }
 
   private int getCurrentSample() {
-    float[] matrixValue = getMatrixValue();
-    int scale = getMatrixScale(matrixValue);
-    currentSample = calculateSample(scale);
-    // Current sample can't be bigger than full sample
-    currentSample = Math.min(currentSample, fullSample);
+    if (previewSample == 1) {
+      // The preview is the most clear, no need tiles
+      currentSample = INVALID_SAMPLE;
+    } else {
+      float[] matrixValue = getMatrixValue();
+      // Get scale from matrix
+      int scale = getMatrixScale(matrixValue);
+      // Get the sample
+      int sample = calculateSample(scale);
+
+      if (sample >= previewSample) {
+        // No need to create tiles which is
+        currentSample = INVALID_SAMPLE;
+      } else {
+        currentSample = sample;
+      }
+    }
     return currentSample;
   }
 
@@ -271,66 +253,32 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
     return visibleRect;
   }
 
-  // Gets the tile which is in full sample and contains this tile
-  private Tile getTheFullSampleTile(Tile tile) {
-    if (tile.sample == fullSample) {
-      return tile;
-    }
-
-    for (Tile fullSampleTile : tilesMap.get(fullSample)) {
-      if (fullSampleTile.contains(tile)) {
-        return fullSampleTile;
-      }
-    }
-
-    throw new RuntimeException("getTheFullSampleTile() should always returns a tile.");
-  }
-
   private void drawTiles(Canvas canvas) {
     // Get current sample
     int currentSample = getCurrentSample();
 
-    // Get tile list for current sample
-    List<Tile> currentTileList = tilesMap.get(currentSample);
-    if (currentTileList == null) {
-      currentTileList = createTileList(currentSample);
-      tilesMap.put(currentSample, currentTileList);
-    }
-
-    // Get visible rect in the image
-    Rect visibleRect = getVisibleRect();
-
-    if (currentSample == fullSample) {
-      // Current sample is full sample
-      // No need to use the full sample tile to fill unloaded current sample tile
-      drawFullSampleTiles = false;
-
-      for (Tile tile : currentTileList) {
-        if (tile.updateVisibility(visibleRect)) {
-          tile.load();
-          tile.draw(canvas, paint, matrix, tempMatrix);
-        }
-      }
+    if (currentSample == INVALID_SAMPLE) {
+      // No current sample, just draw preview
+      preview.draw(canvas, paint, matrix, tempMatrix);
     } else {
-      // Current sample is not full sample
-      // Use the full sample tile to fill unloaded current sample tile
-      drawFullSampleTiles = true;
-
-      // Reset visibility of all tiles in full sample tiles
-      List<Tile> fullTileList = tilesMap.get(fullSample);
-      for (Tile tile : fullTileList) {
-        tile.setVisibility(false);
+      // Get tile list for current sample
+      List<Tile> currentTileList = tilesMap.get(currentSample);
+      if (currentTileList == null) {
+        currentTileList = createTileList(currentSample);
+        tilesMap.put(currentSample, currentTileList);
       }
 
+      // Get visible rect in the image
+      Rect visibleRect = getVisibleRect();
+
+      boolean hasDrawnPreview = false;
       for (Tile tile : currentTileList) {
         if (tile.updateVisibility(visibleRect) && !tile.isLoaded()) {
           tile.load();
-          // The tile doesn't have a bitmap, try to draw a bitmap in full sample tile
-          Tile fullSampleTile = getTheFullSampleTile(tile);
           // Use the visible to mark drew tile to avoid draw it twice
-          if (!fullSampleTile.isVisible()) {
-            fullSampleTile.setVisibility(true);
-            fullSampleTile.draw(canvas, paint, matrix, tempMatrix);
+          if (!hasDrawnPreview) {
+            hasDrawnPreview = true;
+            preview.draw(canvas, paint, matrix, tempMatrix);
           }
         }
       }
@@ -347,7 +295,7 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
 
   @Override
   public void draw(@Nonnull Canvas canvas) {
-    if (windowWidth > 0 && windowHeight > 0 && fullSampleSize == fullSampleDecoderSize) {
+    if (windowWidth > 0 && windowHeight > 0) {
       drawTiles(canvas);
     }
   }
@@ -415,6 +363,25 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
     private void release() {
       if (--reference == 0) {
         decoderReference.close();
+      }
+    }
+  }
+
+  private class PreviewTile {
+
+    private Bitmap bitmap;
+    private int sample;
+
+    public PreviewTile(Bitmap bitmap, int sample) {
+      this.bitmap = bitmap;
+      this.sample = sample;
+    }
+
+    public void draw(Canvas canvas, Paint paint, Matrix matrix, Matrix temp) {
+      if (bitmap != null) {
+        temp.set(matrix);
+        temp.preScale(sample, sample);
+        canvas.drawBitmap(bitmap, temp, paint);
       }
     }
   }
@@ -560,16 +527,7 @@ public class SubsamplingDrawable extends Drawable implements Scaled, DrawableWit
       this.task = null;
       this.failed = bitmap == null;
 
-      if (sample == fullSample) {
-        ++fullSampleDecoderSize;
-        if (fullSampleSize == fullSampleDecoderSize) {
-          // All full sample tiles is loaded
-          invalidateSelf();
-        }
-      }
-
-      if (bitmap != null && visible &&
-          (sample == currentSample || (sample == fullSample && drawFullSampleTiles))) {
+      if (bitmap != null && visible && sample == currentSample) {
         invalidateSelf();
       }
     }

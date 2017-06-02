@@ -94,7 +94,8 @@ class LargeImageDecoder implements ImageDecoder {
           ImageRegionDecoder decoder =
               factory.createImageRegionDecoder(encodedImage, options);
           if (decoder != null) {
-            return new CloseableLargeImage(decoder, encodedImage.getSize());
+            decoder.generatePreview(thresholdWidth, thresholdHeight);
+            return new CloseableLargeImage(decoder);
           }
         }
       }
