@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 import android.content.Context;
+import android.graphics.drawable.Animatable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
@@ -21,12 +22,14 @@ import com.facebook.imagepipeline.image.CloseableImage;
 import com.facebook.imagepipeline.image.CloseableStaticBitmap;
 import com.facebook.imagepipeline.image.EncodedImage;
 
+import com.hippo.fresco.large.drawable.AnimatableStandardizedTransformedDrawable;
+import com.hippo.fresco.large.drawable.AnimatableTransformedDrawable;
 import com.hippo.fresco.large.drawable.StandardizedTransformedDrawable;
 import com.hippo.fresco.large.drawable.Transformed;
 import com.hippo.fresco.large.drawable.TransformedDrawable;
 import com.hippo.fresco.large.drawable.SubsamplingDrawable;
 
-public class LargeDrawableFactory implements DrawableFactory {
+class LargeDrawableFactory implements DrawableFactory {
 
   private final Context context;
 
@@ -86,13 +89,19 @@ public class LargeDrawableFactory implements DrawableFactory {
           getDecodeExecutor());
     } else {
       drawable = createNormalDrawable(image);
-      if (drawable != null) {
+      if (drawable instanceof Animatable) {
+        drawable = new AnimatableTransformedDrawable(drawable);
+      } else if (drawable != null) {
         drawable = new TransformedDrawable(drawable);
       }
     }
 
     if (drawable instanceof Transformed) {
-      drawable = new StandardizedTransformedDrawable(context, drawable);
+      if (drawable instanceof Animatable) {
+        drawable = new AnimatableStandardizedTransformedDrawable(context, drawable);
+      } else {
+        drawable = new StandardizedTransformedDrawable(context, drawable);
+      }
     }
 
     return drawable;
