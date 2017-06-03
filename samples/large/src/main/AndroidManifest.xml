@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.hippo.fresco.large.demo">
 
+  <uses-permission android:name="android.permission.INTERNET"/>
+
   <application
       android:name=".DemoApp"
       android:allowBackup="true"

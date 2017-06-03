@@ -16,8 +16,9 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile "com.android.support:appcompat-v7:${SUPPORT_LIB_VERSION}"
     compile project(':fresco-large')
+    compile project(':animated-gif')
 
     testCompile 'junit:junit:4.12'
 }

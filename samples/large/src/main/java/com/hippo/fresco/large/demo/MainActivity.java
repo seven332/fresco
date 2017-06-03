@@ -1,5 +1,6 @@
 package com.hippo.fresco.large.demo;
 
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -12,7 +13,7 @@ public class MainActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    SimpleDraweeView image = (SimpleDraweeView) findViewById(R.id.image);
-    image.setImageURI("res:///" + R.raw.jpeg_large);
+    ViewPager pager = (ViewPager) findViewById(R.id.pager);
+    pager.setAdapter(new MyPageAdapter(this));
   }
 }
