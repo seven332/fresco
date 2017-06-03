@@ -11,7 +11,7 @@ import com.facebook.imagepipeline.image.CloseableImage;
 
 import com.hippo.fresco.large.decoder.ImageRegionDecoder;
 
-public class CloseableLargeImage extends CloseableImage {
+class CloseableLargeImage extends CloseableImage {
 
   private CloseableReference<ImageRegionDecoder> decoderReference;
   private final int width;
@@ -41,6 +41,12 @@ public class CloseableLargeImage extends CloseableImage {
   @Override
   public int getSizeInBytes() {
     return decoderReference.get().getSize();
+  }
+
+  @Override
+  public boolean isStateful() {
+    // Don't keep it in memory cache
+    return true;
   }
 
   @Override
