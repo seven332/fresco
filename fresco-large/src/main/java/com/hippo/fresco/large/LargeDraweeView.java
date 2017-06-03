@@ -9,6 +9,8 @@ import javax.annotation.Nullable;
 import android.content.Context;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ViewParent;
@@ -37,6 +39,9 @@ public class LargeDraweeView extends SimpleDraweeView {
   private StandardizedTransformedDrawable transform;
 
   private boolean isFixAngleEnabled = true;
+
+  private boolean hasValues;
+  private float[] matrixValues = new float[9];
 
   private final ControllerListener controllerListener = new BaseControllerListener<Object>() {
     @Override
@@ -140,6 +145,9 @@ public class LargeDraweeView extends SimpleDraweeView {
 
     if (drawable instanceof StandardizedTransformedDrawable) {
       transform = (StandardizedTransformedDrawable) drawable;
+      if (hasValues) {
+        transform.setMatrixValues(matrixValues);
+      }
     } else {
       transform = null;
     }
@@ -216,6 +224,69 @@ public class LargeDraweeView extends SimpleDraweeView {
         transform.rotate(angle, x, y);
         requestDisallowInterceptTouchEvent();
       }
+    }
+  }
+
+  @Override
+  protected Parcelable onSaveInstanceState() {
+    Parcelable superState = super.onSaveInstanceState();
+    SavedState savedState = new SavedState(superState);
+    if (transform != null) {
+      hasValues = true;
+      savedState.hasValues = true;
+      transform.getMatrixValues(matrixValues);
+      System.arraycopy(matrixValues, 0, savedState.matrixValues, 0, 9);
+    } else {
+      hasValues = false;
+      savedState.hasValues = false;
+    }
+    return savedState;
+  }
+
+  @Override
+  protected void onRestoreInstanceState(Parcelable state) {
+    SavedState ss = (SavedState) state;
+    super.onRestoreInstanceState(ss.getSuperState());
+    hasValues = ss.hasValues;
+    System.arraycopy(ss.matrixValues, 0, matrixValues, 0, 9);
+    if (transform != null && hasValues) {
+      transform.setMatrixValues(matrixValues);
+    }
+  }
+
+  private static class SavedState extends BaseSavedState {
+
+    boolean hasValues;
+    float[] matrixValues = new float[9];
+
+    SavedState(Parcelable superState) {
+      super(superState);
+    }
+
+    @Override
+    public void writeToParcel(Parcel out, int flags) {
+      super.writeToParcel(out, flags);
+      out.writeInt(hasValues ? 1 : 0);
+      out.writeFloatArray(matrixValues);
+    }
+
+    public static final Parcelable.Creator<SavedState> CREATOR
+        = new Parcelable.Creator<SavedState>() {
+      @Override
+      public SavedState createFromParcel(Parcel in) {
+        return new SavedState(in);
+      }
+
+      @Override
+      public SavedState[] newArray(int size) {
+        return new SavedState[size];
+      }
+    };
+
+    private SavedState(Parcel in) {
+      super(in);
+      hasValues = in.readInt() != 0;
+      in.readFloatArray(matrixValues);
     }
   }
 

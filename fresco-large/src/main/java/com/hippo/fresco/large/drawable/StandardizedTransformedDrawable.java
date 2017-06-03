@@ -34,7 +34,7 @@ public class StandardizedTransformedDrawable extends ForwardingDrawable
 
   private RectF rect = new RectF();
   private Matrix matrix = new Matrix();
-  private float[] matrixValue = new float[9];
+  private float[] matrixValues = new float[9];
 
   private float widthScale;
   private float heightScale;
@@ -48,6 +48,17 @@ public class StandardizedTransformedDrawable extends ForwardingDrawable
   public StandardizedTransformedDrawable(Context context, Drawable drawable) {
     super(drawable);
     this.context = context;
+  }
+
+  public void getMatrixValues(float[] values) {
+    Transformed transformed = (Transformed) getDrawable();
+    transformed.getMatrix().getValues(values);
+  }
+
+  public void setMatrixValues(float[] values) {
+    Transformed transformed = (Transformed) getDrawable();
+    transformed.getMatrix().setValues(values);
+    invalidateSelf();
   }
 
   @Override
@@ -344,16 +355,16 @@ public class StandardizedTransformedDrawable extends ForwardingDrawable
   }
 
   private float getScale(Matrix matrix) {
-    matrix.getValues(matrixValue);
-    float x = matrixValue[Matrix.MSCALE_X];
-    float y = matrixValue[Matrix.MSKEW_X];
+    matrix.getValues(matrixValues);
+    float x = matrixValues[Matrix.MSCALE_X];
+    float y = matrixValues[Matrix.MSKEW_X];
     return (float) Math.sqrt(x * x + y * y);
   }
 
   private float getAngleToRect(Matrix matrix) {
-    matrix.getValues(matrixValue);
-    float x = matrixValue[Matrix.MSCALE_X];
-    float y = matrixValue[Matrix.MSKEW_X];
+    matrix.getValues(matrixValues);
+    float x = matrixValues[Matrix.MSCALE_X];
+    float y = matrixValues[Matrix.MSKEW_X];
     float angle = (float) Math.toDegrees(Math.atan(- y / x));
     if (Float.isNaN(angle)) {
       angle = 90.0f;
