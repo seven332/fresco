@@ -72,7 +72,7 @@ public class LargeDraweeView extends SimpleDraweeView implements GestureRecogniz
 
   private void init(Context context) {
     gestureRecognizer = new GestureRecognizer(context, this);
-    gestureRecognizer.setIsDoubleTapEnabled(false);
+    gestureRecognizer.setIsDoubleTapEnabled(true);
     gestureRecognizer.setIsLongPressEnabled(false);
   }
 
@@ -141,19 +141,34 @@ public class LargeDraweeView extends SimpleDraweeView implements GestureRecogniz
   }
 
   @Override
-  public void onSingleTap(float x, float y) {
-
+  public void onDown(int count, float x, float y) {
+    if (transform != null) {
+      transform.cancelAnimator();
+    }
   }
+
+  @Override
+  public void onUp(int count, float x, float y) {
+    if (count == 0 && transform != null) {
+      transform.rotateToNextAngle(x, y);
+    }
+  }
+
+  @Override
+  public void onCancel() {}
+
+  @Override
+  public void onSingleTap(float x, float y) {}
 
   @Override
   public void onDoubleTap(float x, float y) {
-
+    if (transform != null) {
+      transform.scaleToNextLevel(x, y);
+    }
   }
 
   @Override
-  public void onLongPress(float x, float y) {
-
-  }
+  public void onLongPress(float x, float y) {}
 
   @Override
   public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
@@ -166,24 +181,24 @@ public class LargeDraweeView extends SimpleDraweeView implements GestureRecogniz
 
   @Override
   public void onFling(float velocityX, float velocityY) {
-
+    if (transform != null) {
+      transform.fling(velocityX, velocityY);
+    }
   }
 
   @Override
   public void onScale(float factor, float x, float y) {
     if (transform != null) {
-      if (transform.scale(factor, x, y)) {
-        requestDisallowInterceptTouchEvent();
-      }
+      transform.scale(factor, x, y);
+      requestDisallowInterceptTouchEvent();
     }
   }
 
   @Override
   public void onRotate(float angle, float x, float y) {
     if (transform != null) {
-      if (transform.rotate(angle, x, y)) {
-        requestDisallowInterceptTouchEvent();
-      }
+      transform.rotate(angle, x, y);
+      requestDisallowInterceptTouchEvent();
     }
   }
 

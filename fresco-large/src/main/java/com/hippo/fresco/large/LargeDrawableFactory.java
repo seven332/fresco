@@ -92,7 +92,7 @@ public class LargeDrawableFactory implements DrawableFactory {
     }
 
     if (drawable instanceof Transformed) {
-      drawable = new StandardizedTransformedDrawable(drawable);
+      drawable = new StandardizedTransformedDrawable(context, drawable);
     }
 
     return drawable;

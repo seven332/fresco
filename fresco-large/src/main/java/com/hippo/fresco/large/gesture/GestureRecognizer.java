@@ -101,6 +101,20 @@ public class GestureRecognizer implements GestureDetector.OnGestureListener,
   }
 
   public boolean onTouchEvent(MotionEvent event) {
+    switch (event.getActionMasked()) {
+      case MotionEvent.ACTION_DOWN:
+      case MotionEvent.ACTION_POINTER_DOWN:
+        listener.onDown(event.getPointerCount() - 1, event.getX(), event.getY());
+        break;
+      case MotionEvent.ACTION_UP:
+      case MotionEvent.ACTION_POINTER_UP:
+        listener.onUp(event.getPointerCount() - 1, event.getX(), event.getY());
+        break;
+      case MotionEvent.ACTION_CANCEL:
+        listener.onCancel();
+        break;
+    }
+
     gestureDetector.onTouchEvent(event);
     scaleGestureDetector.onTouchEvent(event);
     rotationGestureDetector.onTouchEvent(event);
@@ -250,6 +264,12 @@ public class GestureRecognizer implements GestureDetector.OnGestureListener,
   }
 
   public interface Listener {
+
+    void onDown(int count, float x, float y);
+
+    void onUp(int count, float x, float y);
+
+    void onCancel();
 
     void onSingleTap(float x, float y);
 
