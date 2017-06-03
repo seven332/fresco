@@ -12,9 +12,6 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.support.annotation.CallSuper;
 
-import com.facebook.drawee.backends.pipeline.Fresco;
-import com.facebook.imagepipeline.image.EncodedImage;
-
 public abstract class ImageRegionDecoder implements Closeable {
 
   private Bitmap preview;

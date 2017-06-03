@@ -28,7 +28,7 @@ import com.hippo.fresco.large.decoder.ImageSizeDecoder;
 class LargeImageDecoder implements ImageDecoder {
 
   private boolean hasDefaultImageDecoder;
-  @Nullable
+  private final Object lockDefaultImageDecoder = new Object();
   private DefaultImageDecoder defaultImageDecoder;
 
   private final ImageSizeDecoder defaultSizeDecoder;
@@ -58,10 +58,14 @@ class LargeImageDecoder implements ImageDecoder {
 
   private DefaultImageDecoder getDefaultImageDecoder() {
     if (!hasDefaultImageDecoder) {
-      hasDefaultImageDecoder = true;
-      ImageDecoder decoder = Fresco.getImagePipelineFactory().getImageDecoder();
-      if (decoder instanceof DefaultImageDecoder) {
-        defaultImageDecoder = (DefaultImageDecoder) decoder;
+      synchronized (lockDefaultImageDecoder) {
+        if (!hasDefaultImageDecoder) {
+          hasDefaultImageDecoder = true;
+          ImageDecoder decoder = Fresco.getImagePipelineFactory().getImageDecoder();
+          if (decoder instanceof DefaultImageDecoder) {
+            defaultImageDecoder = (DefaultImageDecoder) decoder;
+          }
+        }
       }
     }
     return defaultImageDecoder;

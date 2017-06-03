@@ -28,7 +28,6 @@ import com.hippo.fresco.large.gesture.GestureRecognizer;
 public class LargeDraweeView extends SimpleDraweeView implements GestureRecognizer.Listener {
 
   private GestureRecognizer gestureRecognizer;
-
   private StandardizedTransformedDrawable transform;
 
   private final ControllerListener controllerListener = new BaseControllerListener<Object>() {

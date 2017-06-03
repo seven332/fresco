@@ -6,10 +6,11 @@ package com.hippo.fresco.large;
 
 import javax.annotation.Nullable;
 
+import java.util.concurrent.Executor;
+
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 
 import com.facebook.drawee.backends.pipeline.DrawableFactory;
 import com.facebook.drawee.backends.pipeline.Fresco;
@@ -29,7 +30,12 @@ public class LargeDrawableFactory implements DrawableFactory {
 
   private final Context context;
 
+  private boolean hasDecodeExecutor;
+  private final Object lockDecodeExecutor = new Object();
+  private Executor decodeExecutor;
+
   private boolean hasAnimatedDrawableFactory;
+  private final Object lockAnimatedDrawableFactory = new Object();
   private AnimatedDrawableFactory animatedDrawableFactory;
 
   public LargeDrawableFactory(Context context) {
@@ -41,12 +47,29 @@ public class LargeDrawableFactory implements DrawableFactory {
     return true;
   }
 
+  private Executor getDecodeExecutor() {
+    if (!hasDecodeExecutor) {
+      synchronized (lockDecodeExecutor) {
+        if (!hasDecodeExecutor) {
+          hasDecodeExecutor = true;
+          decodeExecutor =
+              Fresco.getImagePipelineFactory().getConfig().getExecutorSupplier().forDecode();
+        }
+      }
+    }
+    return decodeExecutor;
+  }
+
   private AnimatedDrawableFactory getAnimatedDrawableFactory() {
     if (!hasAnimatedDrawableFactory) {
-      hasAnimatedDrawableFactory = true;
-      AnimatedFactory factory = Fresco.getImagePipelineFactory().getAnimatedFactory();
-      if (factory != null) {
-        animatedDrawableFactory = factory.getAnimatedDrawableFactory(context);
+      synchronized (lockAnimatedDrawableFactory) {
+        if (!hasAnimatedDrawableFactory) {
+          hasAnimatedDrawableFactory = true;
+          AnimatedFactory factory = Fresco.getImagePipelineFactory().getAnimatedFactory();
+          if (factory != null) {
+            animatedDrawableFactory = factory.getAnimatedDrawableFactory(context);
+          }
+        }
       }
     }
     return animatedDrawableFactory;
@@ -60,7 +83,7 @@ public class LargeDrawableFactory implements DrawableFactory {
     if (image instanceof CloseableLargeImage) {
       drawable = new SubsamplingDrawable(
           ((CloseableLargeImage) image).getDecoder(),
-          Fresco.getImagePipelineFactory().getConfig().getExecutorSupplier().forDecode());
+          getDecodeExecutor());
     } else {
       drawable = createNormalDrawable(image);
       if (drawable != null) {

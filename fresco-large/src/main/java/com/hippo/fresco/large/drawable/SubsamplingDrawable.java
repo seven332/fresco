@@ -26,7 +26,6 @@ import android.util.SparseArray;
 
 import com.facebook.common.references.CloseableReference;
 import com.facebook.drawable.base.DrawableWithCaches;
-import com.facebook.drawee.drawable.Scaled;
 import com.facebook.drawee.drawable.ScalingUtils;
 
 import com.hippo.fresco.large.decoder.ImageRegionDecoder;
