@@ -11,6 +11,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
 import android.graphics.Rect;
 
+/**
+ * {@code SkiaImageRegionDecoder} uses {@link BitmapRegionDecoder}
+ * to decode image.
+ */
 public class SkiaImageRegionDecoder extends ImageRegionDecoder {
 
   private BitmapRegionDecoder decoder;

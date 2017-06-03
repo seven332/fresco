@@ -25,10 +25,18 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.hippo.fresco.large.drawable.StandardizedTransformedDrawable;
 import com.hippo.fresco.large.gesture.GestureRecognizer;
 
-public class LargeDraweeView extends SimpleDraweeView implements GestureRecognizer.Listener {
+/**
+ * {@code LargeDraweeView} shows a large image and supports gesture
+ * to translate, scale and rotate the image.
+ * <p>
+ * It must be used with {@link FrescoLarge}.
+ */
+public class LargeDraweeView extends SimpleDraweeView {
 
   private GestureRecognizer gestureRecognizer;
   private StandardizedTransformedDrawable transform;
+
+  private boolean isFixAngleEnabled = true;
 
   private final ControllerListener controllerListener = new BaseControllerListener<Object>() {
     @Override
@@ -71,9 +79,25 @@ public class LargeDraweeView extends SimpleDraweeView implements GestureRecogniz
   }
 
   private void init(Context context) {
-    gestureRecognizer = new GestureRecognizer(context, this);
+    gestureRecognizer = new GestureRecognizer(context, new Listener());
     gestureRecognizer.setIsDoubleTapEnabled(true);
     gestureRecognizer.setIsLongPressEnabled(false);
+  }
+
+  /**
+   * Set whether fixing image rotating angle to meet right rect.
+   * If {@code true}, a animation will be run to fix image rotating angle,
+   * otherwise image rotating angle could be any value.
+   */
+  public void setIsFixAngleEnabled(boolean isFixAngleEnabled) {
+    this.isFixAngleEnabled = isFixAngleEnabled;
+  }
+
+  /**
+   * @return {@code true} if fixing image rotating angle is enabled, else {@code false}.
+   */
+  public boolean isFixAngleEnabled() {
+    return isFixAngleEnabled;
   }
 
   @Override
@@ -96,7 +120,6 @@ public class LargeDraweeView extends SimpleDraweeView implements GestureRecogniz
       ((AbstractDraweeController) controller).addControllerListener(controllerListener);
     }
   }
-
 
   private Drawable getActualDrawable() {
     DraweeController controller = getController();
@@ -140,65 +163,59 @@ public class LargeDraweeView extends SimpleDraweeView implements GestureRecogniz
     return true;
   }
 
-  @Override
-  public void onDown(int count, float x, float y) {
-    if (transform != null) {
-      transform.cancelAnimator();
+  private class Listener extends GestureRecognizer.ListenerAdapter {
+
+    @Override
+    public void onDown(int count, float x, float y) {
+      if (transform != null) {
+        transform.cancelAnimator();
+      }
     }
-  }
 
-  @Override
-  public void onUp(int count, float x, float y) {
-    if (count == 0 && transform != null) {
-      transform.rotateToNextAngle(x, y);
+    @Override
+    public void onUp(int count, float x, float y) {
+      if (isFixAngleEnabled && count == 0 && transform != null) {
+        transform.rotateToNextAngle(x, y);
+      }
     }
-  }
 
-  @Override
-  public void onCancel() {}
-
-  @Override
-  public void onSingleTap(float x, float y) {}
-
-  @Override
-  public void onDoubleTap(float x, float y) {
-    if (transform != null) {
-      transform.scaleToNextLevel(x, y);
+    @Override
+    public void onDoubleTap(float x, float y) {
+      if (transform != null) {
+        transform.scaleToNextLevel(x, y);
+      }
     }
-  }
 
-  @Override
-  public void onLongPress(float x, float y) {}
+    @Override
+    public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
+      if (transform != null) {
+        if (transform.translate(dx, dy)) {
+          requestDisallowInterceptTouchEvent();
+        }
+      }
+    }
 
-  @Override
-  public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
-    if (transform != null) {
-      if (transform.translate(dx, dy)) {
+    @Override
+    public void onFling(float velocityX, float velocityY) {
+      if (transform != null) {
+        transform.fling(velocityX, velocityY);
+      }
+    }
+
+    @Override
+    public void onScale(float factor, float x, float y) {
+      if (transform != null) {
+        transform.scale(factor, x, y);
         requestDisallowInterceptTouchEvent();
       }
     }
-  }
 
-  @Override
-  public void onFling(float velocityX, float velocityY) {
-    if (transform != null) {
-      transform.fling(velocityX, velocityY);
-    }
-  }
-
-  @Override
-  public void onScale(float factor, float x, float y) {
-    if (transform != null) {
-      transform.scale(factor, x, y);
-      requestDisallowInterceptTouchEvent();
-    }
-  }
-
-  @Override
-  public void onRotate(float angle, float x, float y) {
-    if (transform != null) {
-      transform.rotate(angle, x, y);
-      requestDisallowInterceptTouchEvent();
+    @Override
+    public void onRotate(float angle, float x, float y) {
+      if (transform != null) {
+        transform.rotate(angle, x, y);
+        requestDisallowInterceptTouchEvent();
+      }
     }
   }
 

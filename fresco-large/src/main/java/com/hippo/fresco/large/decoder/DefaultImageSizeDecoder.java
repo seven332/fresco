@@ -10,6 +10,10 @@ import android.util.Pair;
 
 import com.facebook.imagepipeline.image.EncodedImage;
 
+/**
+ * The default {@code ImageSizeDecoder}. It uses {@link EncodedImage#parseMetaData()}
+ * to get width and height.
+ */
 public class DefaultImageSizeDecoder implements ImageSizeDecoder {
 
   @Nullable

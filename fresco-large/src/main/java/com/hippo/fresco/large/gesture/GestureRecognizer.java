@@ -285,4 +285,37 @@ public class GestureRecognizer implements GestureDetector.OnGestureListener,
 
     void onRotate(float angle, float x, float y);
   }
+
+  public static class ListenerAdapter implements Listener {
+
+    @Override
+    public void onDown(int count, float x, float y) {}
+
+    @Override
+    public void onUp(int count, float x, float y) {}
+
+    @Override
+    public void onCancel() {}
+
+    @Override
+    public void onSingleTap(float x, float y) {}
+
+    @Override
+    public void onDoubleTap(float x, float y) {}
+
+    @Override
+    public void onLongPress(float x, float y) {}
+
+    @Override
+    public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {}
+
+    @Override
+    public void onFling(float velocityX, float velocityY) {}
+
+    @Override
+    public void onScale(float factor, float x, float y) {}
+
+    @Override
+    public void onRotate(float angle, float x, float y) {}
+  }
 }

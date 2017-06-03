@@ -28,7 +28,7 @@ public class FrescoLargeConfig {
   private final int thresholdWidth;
   private final int thresholdHeight;
 
-  public FrescoLargeConfig(Builder builder) {
+  private FrescoLargeConfig(Builder builder) {
     imageFormatSet = builder.imageFormatSet;
     formatCheckerMap = builder.formatCheckerMap;
     sizeDecoderMap = builder.sizeDecoderMap;
@@ -38,31 +38,31 @@ public class FrescoLargeConfig {
     thresholdHeight = builder.thresholdHeight;
   }
 
-  public Set<ImageFormat> getImageFormatSet() {
+  Set<ImageFormat> getImageFormatSet() {
     return imageFormatSet;
   }
 
-  public Map<ImageFormat, ImageFormat.FormatChecker> getImageFormatCheckerMap() {
+  Map<ImageFormat, ImageFormat.FormatChecker> getImageFormatCheckerMap() {
     return formatCheckerMap;
   }
 
-  public Map<ImageFormat, ImageSizeDecoder> getImageSizeDecoderMap() {
+  Map<ImageFormat, ImageSizeDecoder> getImageSizeDecoderMap() {
     return sizeDecoderMap;
   }
 
-  public Map<ImageFormat, ImageRegionDecoderFactory> getImageRegionDecoderFactoryMap() {
+  Map<ImageFormat, ImageRegionDecoderFactory> getImageRegionDecoderFactoryMap() {
     return regionDecoderFactoryMap;
   }
 
-  public Map<ImageFormat, ImageDecoder> getImageDecoderMap() {
+  Map<ImageFormat, ImageDecoder> getImageDecoderMap() {
     return imageDecoderMap;
   }
 
-  public int getThresholdWidth() {
+  int getThresholdWidth() {
     return thresholdWidth;
   }
 
-  public int getThresholdHeight() {
+  int getThresholdHeight() {
     return thresholdHeight;
   }
 
@@ -79,11 +79,26 @@ public class FrescoLargeConfig {
     private int thresholdWidth;
     private int thresholdHeight;
 
+    /**
+     * Add a decoder for the image format.
+     */
     public FrescoLargeConfig.Builder addDecoder(@Nonnull ImageFormat imageFormat,
         @Nonnull ImageRegionDecoderFactory imageRegionDecoderFactory) {
       return addDecoder(imageFormat, null, null, imageRegionDecoderFactory, null);
     }
 
+    /**
+     * Add a decoder for the image format.
+     *
+     * @param imageFormat the image format
+     * @param imageFormatChecker the checker to check whether the image format,
+     *                           {@code null} to use default checker
+     * @param imageSizeDecoder the decoder to decode image size,
+     *                         {@code null} to use default decoder
+     * @param imageRegionDecoderFactory the factory to create image region decoder
+     * @param imageDecoder the decoder to decode the image if the image isn't large,
+     *                     {@code null} to use default decoder
+     */
     public FrescoLargeConfig.Builder addDecoder(@Nonnull ImageFormat imageFormat,
         @Nullable ImageFormat.FormatChecker imageFormatChecker,
         @Nullable ImageSizeDecoder imageSizeDecoder,
@@ -123,6 +138,9 @@ public class FrescoLargeConfig {
       return this;
     }
 
+    /**
+     * Set the threshold to check whether the image is large.
+     */
     public FrescoLargeConfig.Builder setThresholdSize(int width, int height) {
       thresholdWidth = width;
       thresholdHeight = height;

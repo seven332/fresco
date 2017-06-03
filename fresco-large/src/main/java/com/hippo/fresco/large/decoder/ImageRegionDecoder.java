@@ -17,10 +17,19 @@ public abstract class ImageRegionDecoder implements Closeable {
   private Bitmap preview;
   private int previewSample;
 
+  /**
+   * Returns the width of the image.
+   */
   public abstract int getWidth();
 
+  /**
+   * Returns the height of the image.
+   */
   public abstract int getHeight();
 
+  /**
+   * Decodes a region for the image.
+   */
   @Nullable
   public abstract Bitmap decode(Rect rect, int sample);
 
