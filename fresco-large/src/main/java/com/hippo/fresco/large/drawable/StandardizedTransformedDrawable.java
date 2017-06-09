@@ -63,6 +63,8 @@ public class StandardizedTransformedDrawable extends ForwardingDrawable
 
   @Override
   public void dropCaches() {
+    cancelAnimator();
+
     Drawable drawable = getCurrent();
     if (drawable instanceof DrawableWithCaches) {
       ((DrawableWithCaches) drawable).dropCaches();
