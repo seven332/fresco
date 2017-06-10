@@ -13,11 +13,10 @@ import android.graphics.drawable.Animatable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
+import com.facebook.common.internal.ImmutableList;
 import com.facebook.drawee.backends.pipeline.DrawableFactory;
-import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.drawable.OrientedDrawable;
 import com.facebook.imagepipeline.animated.factory.AnimatedDrawableFactory;
-import com.facebook.imagepipeline.animated.factory.AnimatedFactory;
 import com.facebook.imagepipeline.image.CloseableImage;
 import com.facebook.imagepipeline.image.CloseableStaticBitmap;
 import com.facebook.imagepipeline.image.EncodedImage;
@@ -31,51 +30,28 @@ import com.hippo.fresco.large.drawable.SubsamplingDrawable;
 
 class LargeDrawableFactory implements DrawableFactory {
 
+  private static Executor sDecodeExecutor;
+  private static AnimatedDrawableFactory sAnimatedDrawableFactory;
+
+  static void initialize(Executor decodeExecutor, AnimatedDrawableFactory animatedDrawableFactory) {
+    sDecodeExecutor = decodeExecutor;
+    sAnimatedDrawableFactory = animatedDrawableFactory;
+  }
+
+
   private final Context context;
+  private final ImmutableList<DrawableFactory> customDrawableFactories;
 
-  private boolean hasDecodeExecutor;
-  private final Object lockDecodeExecutor = new Object();
-  private Executor decodeExecutor;
-
-  private boolean hasAnimatedDrawableFactory;
-  private final Object lockAnimatedDrawableFactory = new Object();
-  private AnimatedDrawableFactory animatedDrawableFactory;
-
-  public LargeDrawableFactory(Context context) {
+  public LargeDrawableFactory(
+      Context context,
+      ImmutableList<DrawableFactory> customDrawableFactories) {
     this.context = context;
+    this.customDrawableFactories = customDrawableFactories;
   }
 
   @Override
   public final boolean supportsImageType(CloseableImage image) {
     return true;
-  }
-
-  private Executor getDecodeExecutor() {
-    if (!hasDecodeExecutor) {
-      synchronized (lockDecodeExecutor) {
-        if (!hasDecodeExecutor) {
-          hasDecodeExecutor = true;
-          decodeExecutor =
-              Fresco.getImagePipelineFactory().getConfig().getExecutorSupplier().forDecode();
-        }
-      }
-    }
-    return decodeExecutor;
-  }
-
-  private AnimatedDrawableFactory getAnimatedDrawableFactory() {
-    if (!hasAnimatedDrawableFactory) {
-      synchronized (lockAnimatedDrawableFactory) {
-        if (!hasAnimatedDrawableFactory) {
-          hasAnimatedDrawableFactory = true;
-          AnimatedFactory factory = Fresco.getImagePipelineFactory().getAnimatedFactory();
-          if (factory != null) {
-            animatedDrawableFactory = factory.getAnimatedDrawableFactory(context);
-          }
-        }
-      }
-    }
-    return animatedDrawableFactory;
   }
 
   @Nullable
@@ -84,9 +60,7 @@ class LargeDrawableFactory implements DrawableFactory {
     Drawable drawable = null;
 
     if (image instanceof CloseableLargeImage) {
-      drawable = new SubsamplingDrawable(
-          ((CloseableLargeImage) image).getDecoder(),
-          getDecodeExecutor());
+      drawable = new SubsamplingDrawable(((CloseableLargeImage) image).getDecoder(), sDecodeExecutor);
     } else {
       drawable = createNormalDrawable(image);
       if (drawable instanceof Animatable) {
@@ -108,6 +82,17 @@ class LargeDrawableFactory implements DrawableFactory {
   }
 
   private Drawable createNormalDrawable(CloseableImage image) {
+    if (customDrawableFactories != null) {
+      for (DrawableFactory factory : customDrawableFactories) {
+        if (factory.supportsImageType(image)) {
+          Drawable drawable = factory.createDrawable(image);
+          if (drawable != null) {
+            return drawable;
+          }
+        }
+      }
+    }
+
     if (image instanceof CloseableStaticBitmap) {
       CloseableStaticBitmap closeableStaticBitmap = (CloseableStaticBitmap) image;
       Drawable bitmapDrawable = new BitmapDrawable(
@@ -120,7 +105,7 @@ class LargeDrawableFactory implements DrawableFactory {
         return new OrientedDrawable(bitmapDrawable, closeableStaticBitmap.getRotationAngle());
       }
     } else {
-      AnimatedDrawableFactory factory = getAnimatedDrawableFactory();
+      AnimatedDrawableFactory factory = sAnimatedDrawableFactory;
       if (factory != null) {
         return factory.create(image);
       }

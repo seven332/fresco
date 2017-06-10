@@ -10,7 +10,6 @@ import java.util.Map;
 
 import android.util.Pair;
 
-import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imageformat.DefaultImageFormats;
 import com.facebook.imageformat.ImageFormat;
 import com.facebook.imagepipeline.common.ImageDecodeOptions;
@@ -27,9 +26,12 @@ import com.hippo.fresco.large.decoder.ImageSizeDecoder;
 
 class LargeImageDecoder implements ImageDecoder {
 
-  private boolean hasDefaultImageDecoder;
-  private final Object lockDefaultImageDecoder = new Object();
-  private DefaultImageDecoder defaultImageDecoder;
+  private static DefaultImageDecoder sDefaultImageDecoder;
+
+  static void initialize(DefaultImageDecoder defaultImageDecoder) {
+    sDefaultImageDecoder = defaultImageDecoder;
+  }
+
 
   private final ImageSizeDecoder defaultSizeDecoder;
 
@@ -54,21 +56,6 @@ class LargeImageDecoder implements ImageDecoder {
     this.thresholdHeight = thresholdHeight;
 
     defaultSizeDecoder = new DefaultImageSizeDecoder();
-  }
-
-  private DefaultImageDecoder getDefaultImageDecoder() {
-    if (!hasDefaultImageDecoder) {
-      synchronized (lockDefaultImageDecoder) {
-        if (!hasDefaultImageDecoder) {
-          hasDefaultImageDecoder = true;
-          ImageDecoder decoder = Fresco.getImagePipelineFactory().getImageDecoder();
-          if (decoder instanceof DefaultImageDecoder) {
-            defaultImageDecoder = (DefaultImageDecoder) decoder;
-          }
-        }
-      }
-    }
-    return defaultImageDecoder;
   }
 
   private boolean isLargeEnough(int width, int height) {
@@ -112,7 +99,7 @@ class LargeImageDecoder implements ImageDecoder {
       }
     }
 
-    DefaultImageDecoder defaultImageDecoder = getDefaultImageDecoder();
+    DefaultImageDecoder defaultImageDecoder = sDefaultImageDecoder;
     if (defaultImageDecoder != null) {
       if (imageFormat == DefaultImageFormats.JPEG) {
         return defaultImageDecoder.decodeJpeg(encodedImage, length, qualityInfo, options);
