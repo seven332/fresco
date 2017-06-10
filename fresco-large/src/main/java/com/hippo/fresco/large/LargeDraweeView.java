@@ -22,7 +22,7 @@ import com.facebook.drawee.drawable.ArrayDrawable;
 import com.facebook.drawee.drawable.DrawableParent;
 import com.facebook.drawee.generic.GenericDraweeHierarchy;
 import com.facebook.drawee.interfaces.DraweeController;
-import com.facebook.drawee.view.SimpleDraweeView;
+import com.facebook.drawee.view.GenericDraweeView;
 
 import com.hippo.fresco.large.drawable.StandardizedTransformedDrawable;
 import com.hippo.fresco.large.gesture.GestureRecognizer;
@@ -33,7 +33,7 @@ import com.hippo.fresco.large.gesture.GestureRecognizer;
  * <p>
  * It must be used with {@link FrescoLarge}.
  */
-public class LargeDraweeView extends SimpleDraweeView {
+public class LargeDraweeView extends GenericDraweeView {
 
   private GestureRecognizer gestureRecognizer;
   private StandardizedTransformedDrawable transform;

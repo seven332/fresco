@@ -31,13 +31,14 @@ public class DemoApp extends Application {
 
     ImageDecoderConfig.Builder decoderConfigBuilder = ImageDecoderConfig.newBuilder();
     DraweeConfig.Builder draweeConfigBuilder = DraweeConfig.newBuilder();
-    FrescoLarge.config(this, decoderConfigBuilder, draweeConfigBuilder, builder.build());
+    FrescoLarge.config(this, builder.build(), decoderConfigBuilder, draweeConfigBuilder);
 
     ImagePipelineConfig imagePipelineConfig = ImagePipelineConfig
         .newBuilder(this)
         .setImageDecoderConfig(decoderConfigBuilder.build())
         .build();
 
-    Fresco.initialize(this, imagePipelineConfig, draweeConfigBuilder.build());
+    Fresco.initialize(this, imagePipelineConfig);
+    FrescoLarge.initialize(this, draweeConfigBuilder.build());
   }
 }

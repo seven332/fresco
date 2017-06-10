@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.hippo.fresco.large.LargeDraweeView;
+import com.hippo.fresco.large.SimpleLargeDraweeView;
 
 public class MyPageAdapter extends PagerAdapter {
 
@@ -30,7 +31,7 @@ public class MyPageAdapter extends PagerAdapter {
 
   @Override
   public Object instantiateItem(ViewGroup container, int position) {
-    LargeDraweeView view = (LargeDraweeView) inflater.inflate(R.layout.pager, container, false);
+    SimpleLargeDraweeView view = (SimpleLargeDraweeView) inflater.inflate(R.layout.pager, container, false);
     view.setImageURI(SAMPLE_URIS[position]);
     container.addView(view);
     return view;
