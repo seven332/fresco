@@ -324,7 +324,8 @@ public class SubsamplingDrawable extends Drawable implements Transformed, Drawab
 
   @Override
   public void setAlpha(int alpha) {
-    paint.setAlpha(alpha);
+    // Fade effect makes the image flickering when new tiles decoded
+    // paint.setAlpha(alpha);
   }
 
   @Override
