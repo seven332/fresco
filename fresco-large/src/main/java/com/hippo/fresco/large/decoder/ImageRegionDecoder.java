@@ -34,8 +34,8 @@ public abstract class ImageRegionDecoder implements Closeable {
   public abstract Bitmap decode(Rect rect, int sample);
 
   private int getSample(int maxWidth, int maxHeight) {
-    int widthScale = (int) Math.floor((float) getWidth() / (float) maxWidth);
-    int heightScale = (int) Math.floor((float) getHeight() / (float) maxHeight);
+    int widthScale = (int) Math.ceil((float) getWidth() / (float) maxWidth);
+    int heightScale = (int) Math.ceil((float) getHeight() / (float) maxHeight);
     return Math.max(1, Math.max(nextPow2(widthScale), nextPow2(heightScale)));
   }
 
