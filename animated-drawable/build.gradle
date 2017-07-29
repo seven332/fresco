@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven'
 
 project.group = GROUP
 
@@ -7,6 +8,9 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     lintOptions {
         abortOnError false
+    }
+    testOptions {
+        unitTests.returnDefaultValues = true
     }
 }
 
@@ -21,6 +25,7 @@ dependencies {
     testCompile("org.powermock:powermock-api-mockito:${POWERMOCK_VERSION}") {
         exclude group: 'org.mockito', module: 'mockito-all'
     }
+    testCompile "org.powermock:powermock-module-junit4:${POWERMOCK_VERSION}"
     testCompile "org.powermock:powermock-module-junit4-rule:${POWERMOCK_VERSION}"
     testCompile "org.powermock:powermock-classloading-xstream:${POWERMOCK_VERSION}"
     testCompile("org.robolectric:robolectric:${ROBOLECTRIC_VERSION}") {
@@ -28,11 +33,23 @@ dependencies {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
     testCompile project(':imagepipeline-test')
-
-    compile project(':drawee-backends:drawee-pipeline')
+    
     compile project(':imagepipeline-base')
     compile project(':imagepipeline')
     compile project(':drawee')
     compile project(':fbcore')
-    compile project(':animated-base')
 }
+
+apply from: rootProject.file('release.gradle')
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task testJar(type: Jar) {
+    from android.sourceSets.test.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts.add('archives', sourcesJar)

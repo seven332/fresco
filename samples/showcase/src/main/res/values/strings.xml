@@ -28,6 +28,7 @@
 
   <string name="drawee_span_simple_title">Simple DraweeSpan</string>
   <string name="drawee_span_simple_text">Text with an # inline image using a DraweeSpan.</string>
+  <string name="drawee_span_simple_help">This example shows how to render text with an inline image. Change the scale type using the drop-down menu.</string>
 
   <string name="drawee_rounded_corners_title">Rounded Corners</string>
 
@@ -37,6 +38,11 @@
   <string name="drawee_rotation_help">Change the used RotationOptions using the drop-down menu on top.</string>
 
   <string name="drawee_recycler_title">Recycler View</string>
+
+  <string name="drawee_transition_title">Drawee Transition</string>
+  <string name="drawee_transition_help">Tap the image to start the activity transition.</string>
+  <string name="drawee_transition_details_title">Image Detail Activity</string>
+  <string name="drawee_transition_details_help">This is the second activity. Press back to reverse the transition.</string>
 
   <string name="category_pipeline">Image Pipeline</string>
 
@@ -73,8 +79,19 @@
   <string name="imagepipeline_media_variations_toast_mode_listed_variants">Using a list of variants added to the image request</string>
   <string name="imagepipeline_media_variations_toast_mode_media_id_extractor">Using a MediaIdExtractor to pull a media ID from the URL</string>
 
+  <string name="imagepipeline_partial_request_title">Partial Image Loading</string>
+  <string name="button_load_partial">Load Partial</string>
+  <string name="button_load_full">Load Full</string>
+
   <string name="imagepipeline_qualified_resource_title">Qualified Resource URI</string>
   <string name="imagepipeline_qualified_resource_help">Demonstration of loading a resource using a qualifying resource URI. This allows for loading resources that are not part of the application\'s main package.</string>
+
+  <string name="imagepipeline_bitmap_factory_title">Platform Bitmap Factory</string>
+  <string name="imagepipeline_bitmap_factory_help">This fragment\'s code demonstrates how to create managed Bitmaps using the PlatformBitmapFactory.</string>
+  <string name="imagepipeline_bitmap_factory_case_create_basic">Create Basic</string>
+  <string name="imagepipeline_bitmap_factory_case_create_cropped">Create Cropped</string>
+  <string name="imagepipeline_bitmap_factory_case_create_scaled">Create Scaled</string>
+  <string name="imagepipeline_bitmap_factory_case_create_transformed">Create Transformed</string>
 
   <string name="category_format">Image Format</string>
 
@@ -85,6 +102,11 @@
   <string name="format_gif_label_small">Small (256x256 px)</string>
   <string name="format_gif_label_medium">Medium (512x512 px)</string>
   <string name="format_gif_label_large">Large (1024x1024 px)</string>
+
+  <string name="format_webp_title">WebP</string>
+  <string name="format_webp_static_help">The above Drawee displays a lossy WebP image.</string>
+  <string name="format_webp_translucent_help">The above Drawee displays a loss-less WebP image with semi-transparent areas.</string>
+  <string name="format_webp_animated_help">The above Drawee displays an animated WebP image</string>
 
   <string name="format_pjpeg_title">Progressive JPEG</string>
   <string name="format_pjpeg_help">Select a progressive JPEG from the spinner and enable or disable progessive JPEG support with the switch.</string>
@@ -108,6 +130,9 @@
   <string name="format_override_title">Decoder Override</string>
   <string name="format_override_help">This example overrides the decoder to be used for the given image. You can use this approach if you do not want to set a global custom decoder. The image will be decoded correctly even if global color decoding is disabled.</string>
 
+  <string name="format_datauri_title">Data URI</string>
+  <string name="format_datauri_help">Images can also be provided by data URIs such as the one below:</string>
+
   <!-- Preferences -->
 
   <string name="preferences_category_cache">Cache</string>
@@ -121,6 +146,24 @@
   <string name="preference_debug_show_overlay_title">Debug Overlay</string>
   <string name="preference_debug_show_overlay_summary_enabled">Debug overlay is shown for all Drawees</string>
   <string name="preference_debug_show_overlay_summary_disabled">Debug overlay is not shown</string>
+
+  <string name="preferences_category_uri">URI Modifications</string>
+
+  <string name="preference_uri_override_title">URI Override</string>
+  <string name="preference_uri_override_summary_none">&lt;none set&gt;</string>
+  <string name="preference_uri_override_summary_given">%1$s</string>
+
+  <string name="preference_uri_override_dialog_message">New URI to use in all requests instead of the default sample images</string>
+  <string name="preference_uri_override_dialog_edittext_hint">https://example.org/cute_animal.jpg</string>
+  <string name="preference_uri_override_dialog_edittext_error_bad_uri">Bad URI: %1$s</string>
+  <string name="preference_uri_override_dialog_history">Last used: %1$s</string>
+  <string name="preference_uri_override_dialog_button_set">Set</string>
+  <string name="preference_uri_override_dialog_button_cancel">Cancel</string>
+  <string name="preference_uri_override_dialog_button_remove">Remove Override</string>
+
+  <string name="preference_uri_cache_breaking_title">Cache Breaking</string>
+  <string name="preference_uri_cache_breaking_summary_enabled">Using unique URI parameters</string>
+  <string name="preference_uri_cache_breaking_summary_disabled">Not modifying URI</string>
 
   <string name="preferences_category_details">Version and Device Details</string>
 
@@ -148,8 +191,8 @@
   <string name="button_toggle_images">Toggle images</string>
   <string name="prefetch_status">%1$d/%2$d prefetched, %3$d failed.</string>
 
-  <string translatable="false" name="message_application_needs_restart">In order to keep this change you have to kill and restart this application</string>
-  <string translatable="false" name="message_restart_now">Kill Now</string>
+  <string name="snackbar_uri_override_reminder_text">URI override is active</string>
+  <string name="snackbar_uri_override_reminder_change_button">Change</string>
 
   <string name="drawee_rounded_corners_as_circle">Using roundAsCircle</string>
   <string name="drawee_rounded_corners_radius">16dp corner radius</string>
@@ -162,5 +205,7 @@
   <string name="drawee_hierarchy_load_success">Load (success)</string>
   <string name="drawee_hierarchy_load_fail">Load (fail)</string>
   <string name="drawee_hierarchy_clear">Clear</string>
+  <string name="drawee_hierarchy_retry">Enable Retry</string>
 
+  <string name="transition_name">image_transition</string>
 </resources>

@@ -104,9 +104,9 @@ class LargeImageDecoder implements ImageDecoder {
       if (imageFormat == DefaultImageFormats.JPEG) {
         return defaultImageDecoder.decodeJpeg(encodedImage, length, qualityInfo, options);
       } else if (imageFormat == DefaultImageFormats.GIF) {
-        return defaultImageDecoder.decodeGif(encodedImage, options);
+        return defaultImageDecoder.decodeGif(encodedImage, length, qualityInfo, options);
       } else if (imageFormat == DefaultImageFormats.WEBP_ANIMATED) {
-        return defaultImageDecoder.decodeAnimatedWebp(encodedImage, options);
+        return defaultImageDecoder.decodeAnimatedWebp(encodedImage, length, qualityInfo, options);
       }
       return defaultImageDecoder.decodeStaticImage(encodedImage, options);
     }

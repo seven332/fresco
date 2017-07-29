@@ -13,6 +13,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.v4.util.Pools;
 
 import com.facebook.cache.common.CacheKey;
@@ -25,7 +26,6 @@ import com.facebook.common.memory.PooledByteBuffer;
 import com.facebook.imageformat.ImageFormatChecker;
 import com.facebook.imagepipeline.animated.factory.AnimatedFactory;
 import com.facebook.imagepipeline.animated.factory.AnimatedFactoryProvider;
-import com.facebook.imagepipeline.animated.factory.AnimatedImageFactory;
 import com.facebook.imagepipeline.bitmaps.ArtBitmapFactory;
 import com.facebook.imagepipeline.bitmaps.EmptyJpegGenerator;
 import com.facebook.imagepipeline.bitmaps.GingerbreadBitmapFactory;
@@ -43,6 +43,7 @@ import com.facebook.imagepipeline.cache.MemoryCache;
 import com.facebook.imagepipeline.cache.NoOpMediaVariationsIndex;
 import com.facebook.imagepipeline.decoder.DefaultImageDecoder;
 import com.facebook.imagepipeline.decoder.ImageDecoder;
+import com.facebook.imagepipeline.drawable.DrawableFactory;
 import com.facebook.imagepipeline.image.CloseableImage;
 import com.facebook.imagepipeline.memory.PoolFactory;
 import com.facebook.imagepipeline.platform.ArtDecoder;
@@ -133,9 +134,16 @@ public class ImagePipelineFactory {
     if (mAnimatedFactory == null) {
       mAnimatedFactory = AnimatedFactoryProvider.getAnimatedFactory(
           getPlatformBitmapFactory(),
-          mConfig.getExecutorSupplier());
+          mConfig.getExecutorSupplier(),
+          getBitmapCountingMemoryCache());
     }
     return mAnimatedFactory;
+  }
+
+  @Nullable
+  public DrawableFactory getAnimatedDrawableFactory(Context context) {
+    AnimatedFactory animatedFactory = getAnimatedFactory();
+    return animatedFactory == null ? null : animatedFactory.getAnimatedDrawableFactory(context);
   }
 
   public CountingMemoryCache<CacheKey, CloseableImage>
@@ -146,7 +154,8 @@ public class ImagePipelineFactory {
               mConfig.getBitmapMemoryCacheParamsSupplier(),
               mConfig.getMemoryTrimmableRegistry(),
               getPlatformBitmapFactory(),
-              mConfig.getExperiments().isExternalCreatedBitmapLogEnabled());
+              mConfig.getExperiments().isExternalCreatedBitmapLogEnabled(),
+              mConfig.getBitmapMemoryCacheTrimStrategy());
     }
     return mBitmapCountingMemoryCache;
   }
@@ -188,22 +197,25 @@ public class ImagePipelineFactory {
         mImageDecoder = mConfig.getImageDecoder();
       } else {
         final AnimatedFactory animatedFactory = getAnimatedFactory();
-        final AnimatedImageFactory animatedImageFactory;
+
+        ImageDecoder gifDecoder = null;
+        ImageDecoder webPDecoder = null;
+
         if (animatedFactory != null) {
-          animatedImageFactory = getAnimatedFactory().getAnimatedImageFactory();
-        } else {
-          animatedImageFactory = null;
+          gifDecoder = animatedFactory.getGifDecoder(mConfig.getBitmapConfig());
+          webPDecoder = animatedFactory.getWebPDecoder(mConfig.getBitmapConfig());
         }
+
         if (mConfig.getImageDecoderConfig() == null) {
           mImageDecoder = new DefaultImageDecoder(
-              animatedImageFactory,
-              getPlatformDecoder(),
-              mConfig.getBitmapConfig());
+              gifDecoder,
+              webPDecoder,
+              getPlatformDecoder());
         } else {
           mImageDecoder = new DefaultImageDecoder(
-              animatedImageFactory,
+              gifDecoder,
+              webPDecoder,
               getPlatformDecoder(),
-              mConfig.getBitmapConfig(),
               mConfig.getImageDecoderConfig().getCustomImageDecoders());
           // Add custom image formats if needed
           ImageFormatChecker.getInstance()
@@ -341,13 +353,16 @@ public class ImagePipelineFactory {
               getMediaVariationsIndex(),
               mConfig.getExperiments().getMediaIdExtractor(),
               mConfig.getCacheKeyFactory(),
-              getPlatformBitmapFactory(),
-              mConfig.getExperiments().getForceSmallCacheThresholdBytes());
+              getPlatformBitmapFactory());
     }
     return mProducerFactory;
   }
 
   private ProducerSequenceFactory getProducerSequenceFactory() {
+    // before Android N the Bitmap#prepareToDraw method is no-op so do not need this
+    final boolean useBitmapPrepareToDraw = Build.VERSION.SDK_INT >= 24 //Build.VERSION_CODES.NOUGAT
+        && mConfig.getExperiments().getUseBitmapPrepareToDraw();
+
     if (mProducerSequenceFactory == null) {
       mProducerSequenceFactory =
           new ProducerSequenceFactory(
@@ -356,7 +371,9 @@ public class ImagePipelineFactory {
               mConfig.isResizeAndRotateEnabledForNetwork(),
               mConfig.getExperiments().isWebpSupportEnabled(),
               mThreadHandoffProducerQueue,
-              mConfig.getExperiments().getUseDownsamplingRatioForResizing());
+              mConfig.getExperiments().getUseDownsamplingRatioForResizing(),
+              useBitmapPrepareToDraw,
+              mConfig.getExperiments().isPartialImageCachingEnabled());
     }
     return mProducerSequenceFactory;
   }

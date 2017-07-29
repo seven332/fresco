@@ -9,6 +9,13 @@
 
 package com.facebook.imagepipeline.producers;
 
+import java.lang.annotation.Retention;
+
+import android.support.annotation.IntDef;
+
+
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 /**
  * Consumes data produced by {@link Producer}.<T>
  *
@@ -35,6 +42,49 @@ package com.facebook.imagepipeline.producers;
 public interface Consumer<T> {
 
   /**
+   * Frame type that has been drawn. Can be used for logging.
+   */
+  @Retention(SOURCE)
+  @IntDef(
+      flag = true,
+      value = {
+          IS_LAST,
+          DO_NOT_CACHE_ENCODED,
+          IS_PLACEHOLDER,
+          IS_PARTIAL_RESULT,
+      })
+  @interface Status {
+
+  }
+
+  /**
+   * Convenience constant for a status with no flags set. The absence of {@link #IS_LAST} means this
+   * status can be used for intermediate results. This constant should never be used when checking
+   * for flags.
+   */
+  int NO_FLAGS = 0;
+  /**
+   * Status flag to show whether the result being received is the last one coming or to expect more.
+   */
+  int IS_LAST = 1;
+  /**
+   * Status flag to show the result should not be cached in disk or encoded caches, even if it's the
+   * last result.
+   */
+  int DO_NOT_CACHE_ENCODED = 1 << 1;
+  /**
+   * Status flag to show whether the result is a placeholder for the final result. Should only be
+   * set if IS_LAST is not set.
+   */
+  int IS_PLACEHOLDER = 1 << 2;
+  /**
+   * Status flag to show the result does not represent the whole image, just part of it. This may be
+   * due to a cancellation or failure while the file was being downloaded or because only part of
+   * the image was requested.
+   */
+  int IS_PARTIAL_RESULT = 1 << 3;
+
+  /**
    * Called by a producer whenever new data is produced. This method should not throw an exception.
    *
    * <p> In case when result is closeable resource producer will close it after onNewResult returns.
@@ -42,9 +92,10 @@ public interface Consumer<T> {
    * with CloseableReferences, that should not impose too much overhead.
    *
    * @param newResult
-   * @param isLast true if newResult is the last result
+   * @param status bitwise values describing the returned result
+   * @see Status for status flags
    */
-  void onNewResult(T newResult, boolean isLast);
+  void onNewResult(T newResult, @Status int status);
 
   /**
    * Called by a producer whenever it terminates further work due to Throwable being thrown. This

@@ -23,7 +23,6 @@ import com.facebook.common.internal.ImmutableMap;
 import com.facebook.common.internal.VisibleForTesting;
 import com.facebook.imagepipeline.cache.BufferedDiskCache;
 import com.facebook.imagepipeline.cache.CacheKeyFactory;
-import com.facebook.imagepipeline.cache.DiskCachePolicy;
 import com.facebook.imagepipeline.cache.MediaIdExtractor;
 import com.facebook.imagepipeline.cache.MediaVariationsIndex;
 import com.facebook.imagepipeline.common.ResizeOptions;
@@ -63,7 +62,6 @@ public class MediaVariationsFallbackProducer implements Producer<EncodedImage> {
   private final CacheKeyFactory mCacheKeyFactory;
   private final MediaVariationsIndex mMediaVariationsIndex;
   @Nullable private MediaIdExtractor mMediaIdExtractor;
-  private final DiskCachePolicy mDiskCachePolicy;
   private final Producer<EncodedImage> mInputProducer;
 
   public MediaVariationsFallbackProducer(
@@ -72,14 +70,12 @@ public class MediaVariationsFallbackProducer implements Producer<EncodedImage> {
       CacheKeyFactory cacheKeyFactory,
       MediaVariationsIndex mediaVariationsIndex,
       @Nullable MediaIdExtractor mediaIdExtractor,
-      DiskCachePolicy diskCachePolicy,
       Producer<EncodedImage> inputProducer) {
     mDefaultBufferedDiskCache = defaultBufferedDiskCache;
     mSmallImageBufferedDiskCache = smallImageBufferedDiskCache;
     mCacheKeyFactory = cacheKeyFactory;
     mMediaVariationsIndex = mediaVariationsIndex;
     mMediaIdExtractor = mediaIdExtractor;
-    mDiskCachePolicy = diskCachePolicy;
     mInputProducer = inputProducer;
   }
 
@@ -93,7 +89,8 @@ public class MediaVariationsFallbackProducer implements Producer<EncodedImage> {
     if (!imageRequest.isDiskCacheEnabled() ||
         resizeOptions == null ||
         resizeOptions.height <= 0 ||
-        resizeOptions.width <= 0) {
+        resizeOptions.width <= 0 ||
+        imageRequest.getBytesRange() != null) {
       startInputProducerWithExistingConsumer(consumer, producerContext);
       return;
     }
@@ -257,10 +254,12 @@ public class MediaVariationsFallbackProducer implements Producer<EncodedImage> {
       public Void then(Task<EncodedImage> task)
           throws Exception {
         final boolean triggerNextProducer;
+        final boolean allowIntermediateResults;
         if (isTaskCancelled(task)) {
           listener.onProducerFinishWithCancellation(requestId, PRODUCER_NAME, null);
           consumer.onCancellation();
           triggerNextProducer = false;
+          allowIntermediateResults = false;
         } else if (task.isFaulted()) {
           listener.onProducerFinishWithFailure(requestId, PRODUCER_NAME, task.getError(), null);
           startInputProducerWithWrappedConsumer(
@@ -268,6 +267,7 @@ public class MediaVariationsFallbackProducer implements Producer<EncodedImage> {
               producerContext,
               mediaVariations.getMediaId());
           triggerNextProducer = true;
+          allowIntermediateResults = true;
         } else {
           EncodedImage cachedReference = task.getResult();
           if (cachedReference != null) {
@@ -290,10 +290,20 @@ public class MediaVariationsFallbackProducer implements Producer<EncodedImage> {
               listener.onUltimateProducerReached(requestId, PRODUCER_NAME, true);
               consumer.onProgressUpdate(1);
             }
-            consumer.onNewResult(cachedReference, useAsLastResult);
+            @Consumer.Status int status = BaseConsumer.simpleStatusForIsLast(useAsLastResult);
+            status = BaseConsumer.turnOnStatusFlag(status, Consumer.DO_NOT_CACHE_ENCODED);
+            if (!useAsLastResult) {
+              status =  BaseConsumer.turnOnStatusFlag(status, Consumer.IS_PLACEHOLDER);
+            }
+            consumer.onNewResult(
+                cachedReference,
+                status);
             cachedReference.close();
 
             triggerNextProducer = !useAsLastResult;
+            // Since we've already got an image to display (the variant image) there is no
+            // need to allow intermediate results of the final image
+            allowIntermediateResults = false;
           } else if (variantsIndex < sortedVariants.size() - 1) {
             // TODO t14487493: Remove the item from the index
 
@@ -307,6 +317,9 @@ public class MediaVariationsFallbackProducer implements Producer<EncodedImage> {
                 isCancelled);
 
             triggerNextProducer = false;
+            // Since the variant image found can be used in place of the requested one, we dont
+            // need to process further intermediate images
+            allowIntermediateResults = false;
           } else {
             listener.onProducerFinishWithSuccess(
                 requestId,
@@ -319,13 +332,25 @@ public class MediaVariationsFallbackProducer implements Producer<EncodedImage> {
                     mediaVariations.getSource(),
                     false));
             triggerNextProducer = true;
+            allowIntermediateResults = true;
           }
         }
-
         if (triggerNextProducer) {
+          final ProducerContext forwardedProducerContext;
+          if (producerContext.isIntermediateResultExpected()
+              && !allowIntermediateResults) {
+            // Pass the request on, but disable intermediate results
+            final SettableProducerContext settableContext =
+                new SettableProducerContext(producerContext);
+            settableContext.setIsIntermediateResultExpected(false);
+            forwardedProducerContext = settableContext;
+          }
+          else {
+            forwardedProducerContext = producerContext;
+          }
           startInputProducerWithWrappedConsumer(
               consumer,
-              producerContext,
+              forwardedProducerContext,
               mediaVariations.getMediaId());
         }
         return null;
@@ -411,11 +436,11 @@ public class MediaVariationsFallbackProducer implements Producer<EncodedImage> {
     }
 
     @Override
-    protected void onNewResultImpl(EncodedImage newResult, boolean isLast) {
-      if (isLast && newResult != null) {
+    protected void onNewResultImpl(EncodedImage newResult, @Status int status) {
+      if (isLast(status) && newResult != null && !statusHasFlag(status, IS_PARTIAL_RESULT)) {
         storeResultInDatabase(newResult);
       }
-      getConsumer().onNewResult(newResult, isLast);
+      getConsumer().onNewResult(newResult, status);
     }
 
     private void storeResultInDatabase(EncodedImage newResult) {
@@ -425,8 +450,9 @@ public class MediaVariationsFallbackProducer implements Producer<EncodedImage> {
         return;
       }
 
-      final ImageRequest.CacheChoice cacheChoice =
-          mDiskCachePolicy.getCacheChoiceForResult(imageRequest, newResult);
+      final ImageRequest.CacheChoice cacheChoice = imageRequest.getCacheChoice() == null
+          ? ImageRequest.CacheChoice.DEFAULT
+          : imageRequest.getCacheChoice();
       final CacheKey cacheKey =
           mCacheKeyFactory.getEncodedCacheKey(imageRequest, mProducerContext.getCallerContext());
 

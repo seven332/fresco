@@ -42,6 +42,10 @@
             android:id="@+id/nav_drawee_recycler"
             android:title="@string/drawee_recycler_title"
             />
+        <item
+            android:id="@+id/nav_drawee_transition"
+            android:title="@string/drawee_transition_title"
+            />
       </group>
     </menu>
   </item>
@@ -69,6 +73,14 @@
             android:id="@+id/nav_imagepipeline_qualified_resource"
             android:title="@string/imagepipeline_qualified_resource_title"
             />
+        <item
+            android:id="@+id/nav_imagepipeline_partial_request"
+            android:title="@string/imagepipeline_partial_request_title"
+            />
+        <item
+            android:id="@+id/nav_imagepipeline_bitmap_factory"
+            android:title="@string/imagepipeline_bitmap_factory_title"
+            />
       </group>
     </menu>
   </item>
@@ -89,6 +101,10 @@
             android:title="@string/format_gif_title"
             />
         <item
+            android:id="@+id/nav_format_webp"
+            android:title="@string/format_webp_title"
+            />
+        <item
             android:id="@+id/nav_format_svg"
             android:title="@string/format_svg_title"
             />
@@ -99,6 +115,10 @@
         <item
             android:id="@+id/nav_format_override"
             android:title="@string/format_override_title"
+            />
+        <item
+            android:id="@+id/nav_format_datauri"
+            android:title="@string/format_datauri_title"
             />
       </group>
     </menu>

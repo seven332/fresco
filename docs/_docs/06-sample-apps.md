@@ -12,6 +12,11 @@ Fresco's GitHub repository contains several samples to demonstrate how to use Fr
 
 The samples are available in source form only. Follow the [build instructions](building-from-source.html) to set up your dev environment to build and run them.
 
+### The Showcase app
+
+The [Showcase App](https://github.com/facebook/fresco/blob/master/samples/showcase) demonstrates various features and allows to customize parameters to show their effect.
+It includes samples for Drawee and for the image pipeline. Furthermore, it showcases how to use both built-in and custom image formats.
+
 ### The zoomable library
 
 The [zoomable library](https://github.com/facebook/fresco/blob/master/samples/zoomable) features a `ZoomableDraweeView` class that supports gestures such as pinch-to-zoom and panning of a Drawee image.
@@ -28,14 +33,6 @@ You can build, install, and run a controlled test of any combination of loaders 
 
 ```./run_comparison.py -c armeabi-v7a```
 
-### The demo app
-
-The demo app shows the wide variety of images Fresco supports - baseline and progressive JPEG, both simple, extended, and animated WebP, PNG, and animated GIF. We also show an image from a data URI.
-
 ### The round app
 
 The round app shows the same image scaled in several different ways, with and without a circle applied.
-
-### The uri app
-
-The uri app loads an image from an uri provided via TextView. It's handy to test whether Fresco is able to display a particular image.

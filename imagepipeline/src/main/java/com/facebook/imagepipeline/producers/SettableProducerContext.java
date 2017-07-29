@@ -20,6 +20,30 @@ import com.facebook.imagepipeline.request.ImageRequest;
 @ThreadSafe
 public class SettableProducerContext extends BaseProducerContext {
 
+  public SettableProducerContext(ProducerContext context) {
+    this(
+        context.getImageRequest(),
+        context.getId(),
+        context.getListener(),
+        context.getCallerContext(),
+        context.getLowestPermittedRequestLevel(),
+        context.isPrefetch(),
+        context.isIntermediateResultExpected(),
+        context.getPriority());
+  }
+
+  public SettableProducerContext(ImageRequest overrideRequest, ProducerContext context) {
+    this(
+        overrideRequest,
+        context.getId(),
+        context.getListener(),
+        context.getCallerContext(),
+        context.getLowestPermittedRequestLevel(),
+        context.isPrefetch(),
+        context.isIntermediateResultExpected(),
+        context.getPriority());
+  }
+
   public SettableProducerContext(
       ImageRequest imageRequest,
       String id,

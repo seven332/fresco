@@ -414,12 +414,7 @@ public abstract class AbstractDraweeControllerBuilder <
     if (!mTapToRetryEnabled) {
       return;
     }
-    RetryManager retryManager = controller.getRetryManager();
-    if (retryManager == null) {
-      retryManager = new RetryManager();
-      controller.setRetryManager(retryManager);
-    }
-    retryManager.setTapToRetryEnabled(mTapToRetryEnabled);
+    controller.getRetryManager().setTapToRetryEnabled(mTapToRetryEnabled);
     maybeBuildAndSetGestureDetector(controller);
   }
 
@@ -457,7 +452,7 @@ public abstract class AbstractDraweeControllerBuilder <
       final CacheLevel cacheLevel);
 
   /** Concrete builder classes should override this method to return {#code this}. */
-  protected abstract BUILDER getThis();
+  @ReturnsOwnership protected abstract BUILDER getThis();
 
   public enum CacheLevel {
     /* Fetch (from the network or local storage) */

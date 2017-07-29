@@ -14,9 +14,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
 import com.facebook.common.internal.ImmutableList;
-import com.facebook.drawee.backends.pipeline.DrawableFactory;
 import com.facebook.drawee.drawable.OrientedDrawable;
-import com.facebook.imagepipeline.animated.factory.AnimatedDrawableFactory;
+import com.facebook.imagepipeline.drawable.DrawableFactory;
 import com.facebook.imagepipeline.image.CloseableImage;
 import com.facebook.imagepipeline.image.CloseableStaticBitmap;
 import com.facebook.imagepipeline.image.EncodedImage;
@@ -24,16 +23,16 @@ import com.facebook.imagepipeline.image.EncodedImage;
 import com.hippo.fresco.large.drawable.AnimatableStandardizedTransformedDrawable;
 import com.hippo.fresco.large.drawable.AnimatableTransformedDrawable;
 import com.hippo.fresco.large.drawable.StandardizedTransformedDrawable;
+import com.hippo.fresco.large.drawable.SubsamplingDrawable;
 import com.hippo.fresco.large.drawable.Transformed;
 import com.hippo.fresco.large.drawable.TransformedDrawable;
-import com.hippo.fresco.large.drawable.SubsamplingDrawable;
 
 class LargeDrawableFactory implements DrawableFactory {
 
   private static Executor sDecodeExecutor;
-  private static AnimatedDrawableFactory sAnimatedDrawableFactory;
+  private static DrawableFactory sAnimatedDrawableFactory;
 
-  static void initialize(Executor decodeExecutor, AnimatedDrawableFactory animatedDrawableFactory) {
+  static void initialize(Executor decodeExecutor, DrawableFactory animatedDrawableFactory) {
     sDecodeExecutor = decodeExecutor;
     sAnimatedDrawableFactory = animatedDrawableFactory;
   }
@@ -105,9 +104,9 @@ class LargeDrawableFactory implements DrawableFactory {
         return new OrientedDrawable(bitmapDrawable, closeableStaticBitmap.getRotationAngle());
       }
     } else {
-      AnimatedDrawableFactory factory = sAnimatedDrawableFactory;
+      DrawableFactory factory = sAnimatedDrawableFactory;
       if (factory != null) {
-        return factory.create(image);
+        return factory.createDrawable(image);
       }
     }
     return null;

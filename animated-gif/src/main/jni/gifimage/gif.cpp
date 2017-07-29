@@ -278,14 +278,15 @@ static ColorMapObject* genDefColorMap(void) {
 ////////////////////////////////////////////////////////////////
 
 bool getGraphicsControlBlockForImage(SavedImage* pSavedImage, GraphicsControlBlock* pGcp) {
+  int resultCode = GIF_ERROR;
+  // If a GIF has multiple graphic control extension blocks, we use the last one
   for (int i = 0; i < pSavedImage->ExtensionBlockCount; i++) {
     ExtensionBlock* pExtensionBlock = &pSavedImage->ExtensionBlocks[i];
     if (pExtensionBlock->Function == GRAPHICS_EXT_FUNC_CODE) {
-      DGifExtensionToGCB(pExtensionBlock->ByteCount, pExtensionBlock->Bytes, pGcp);
-      return true;
+      resultCode = DGifExtensionToGCB(pExtensionBlock->ByteCount, pExtensionBlock->Bytes, pGcp);
     }
   }
-  return false;
+  return resultCode == GIF_OK;
 }
 
 /**
@@ -312,11 +313,16 @@ int readSingleFrame(
   }
   SavedImage* pSavedImage = &pGifFile->SavedImages[pGifFile->ImageCount - 1];
 
-  // Check size of image.
-  if (pSavedImage->ImageDesc.Width <= 0 &&
-      pSavedImage->ImageDesc.Height <= 0 &&
-      pSavedImage->ImageDesc.Width > (INT_MAX / pSavedImage->ImageDesc.Height)) {
+  // Check size of image. Note: Frames with 0 width or height should be allowed.
+  if (pSavedImage->ImageDesc.Width < 0 || pSavedImage->ImageDesc.Height < 0) {
     return GIF_ERROR;
+  }
+
+  // Check for image size overflow.
+  if (pSavedImage->ImageDesc.Width > 0 &&
+      pSavedImage->ImageDesc.Height > 0 &&
+      pSavedImage->ImageDesc.Width > (INT_MAX / pSavedImage->ImageDesc.Height)) {
+      return GIF_ERROR;
   }
 
   size_t imageSize = pSavedImage->ImageDesc.Width * pSavedImage->ImageDesc.Height;

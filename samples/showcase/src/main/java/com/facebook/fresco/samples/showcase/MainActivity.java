@@ -17,9 +17,10 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -27,6 +28,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.facebook.fresco.samples.showcase.drawee.DraweeHierarchyFragment;
 import com.facebook.fresco.samples.showcase.drawee.DraweeMediaPickerFragment;
@@ -36,17 +38,24 @@ import com.facebook.fresco.samples.showcase.drawee.DraweeRoundedCornersFragment;
 import com.facebook.fresco.samples.showcase.drawee.DraweeScaleTypeFragment;
 import com.facebook.fresco.samples.showcase.drawee.DraweeSimpleFragment;
 import com.facebook.fresco.samples.showcase.drawee.DraweeSpanSimpleTextFragment;
+import com.facebook.fresco.samples.showcase.drawee.transition.DraweeTransitionFragment;
 import com.facebook.fresco.samples.showcase.imageformat.color.ImageFormatColorFragment;
+import com.facebook.fresco.samples.showcase.imageformat.datauri.ImageFormatDataUriFragment;
 import com.facebook.fresco.samples.showcase.imageformat.gif.ImageFormatGifFragment;
 import com.facebook.fresco.samples.showcase.imageformat.keyframes.ImageFormatKeyframesFragment;
 import com.facebook.fresco.samples.showcase.imageformat.override.ImageFormatOverrideExample;
 import com.facebook.fresco.samples.showcase.imageformat.pjpeg.ImageFormatProgressiveJpegFragment;
 import com.facebook.fresco.samples.showcase.imageformat.svg.ImageFormatSvgFragment;
+import com.facebook.fresco.samples.showcase.imageformat.webp.ImageFormatWebpFragment;
+import com.facebook.fresco.samples.showcase.imagepipeline.ImagePipelineBitmapFactoryFragment;
 import com.facebook.fresco.samples.showcase.imagepipeline.ImagePipelineQualifiedResourceFragment;
 import com.facebook.fresco.samples.showcase.imagepipeline.ImagePipelineNotificationFragment;
 import com.facebook.fresco.samples.showcase.imagepipeline.ImagePipelinePostProcessorFragment;
 import com.facebook.fresco.samples.showcase.imagepipeline.ImagePipelinePrefetchFragment;
+import com.facebook.fresco.samples.showcase.imagepipeline.ImagePipelineQualifiedResourceFragment;
 import com.facebook.fresco.samples.showcase.imagepipeline.MediaVariationsFragment;
+import com.facebook.fresco.samples.showcase.imagepipeline.PartialRequestFragment;
+import com.facebook.fresco.samples.showcase.misc.ImageUriProvider;
 import com.facebook.fresco.samples.showcase.misc.WelcomeFragment;
 import com.facebook.fresco.samples.showcase.settings.SettingsFragment;
 
@@ -80,6 +89,12 @@ public class MainActivity extends AppCompatActivity
       handleNavigationItemClick(selectedItem);
       navigationView.setCheckedItem(selectedItem);
     }
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    maybeShowUriOverrideReminder();
   }
 
   @Override
@@ -156,6 +171,9 @@ public class MainActivity extends AppCompatActivity
       case R.id.nav_drawee_recycler:
         fragment = new DraweeRecyclerViewFragment();
         break;
+      case R.id.nav_drawee_transition:
+        fragment = new DraweeTransitionFragment();
+        break;
 
       // Imagepipline
       case R.id.nav_imagepipeline_media_variations:
@@ -173,6 +191,12 @@ public class MainActivity extends AppCompatActivity
       case R.id.nav_imagepipeline_qualified_resource:
         fragment = new ImagePipelineQualifiedResourceFragment();
         break;
+      case R.id.nav_imagepipeline_partial_request:
+        fragment = new PartialRequestFragment();
+        break;
+      case R.id.nav_imagepipeline_bitmap_factory:
+        fragment = new ImagePipelineBitmapFactoryFragment();
+        break;
 
       // Image Formats
       case R.id.nav_format_pjpeg:
@@ -184,6 +208,9 @@ public class MainActivity extends AppCompatActivity
       case R.id.nav_format_gif:
         fragment = new ImageFormatGifFragment();
         break;
+      case R.id.nav_format_webp:
+        fragment = new ImageFormatWebpFragment();
+        break;
       case R.id.nav_format_svg:
         fragment = new ImageFormatSvgFragment();
         break;
@@ -192,6 +219,9 @@ public class MainActivity extends AppCompatActivity
         break;
       case R.id.nav_format_override:
         fragment = new ImageFormatOverrideExample();
+        break;
+      case R.id.nav_format_datauri:
+        fragment = new ImageFormatDataUriFragment();
         break;
 
       // More
@@ -231,5 +261,24 @@ public class MainActivity extends AppCompatActivity
     fragmentTransaction.commit();
 
     setTitle(fragment.getTitleId());
+  }
+
+  private void maybeShowUriOverrideReminder() {
+    if (ImageUriProvider.getInstance(this).getUriOverride() == null) {
+      return;
+    }
+    final Snackbar snackbar = Snackbar.make(
+        findViewById(R.id.content_main),
+        R.string.snackbar_uri_override_reminder_text,
+        Snackbar.LENGTH_LONG);
+    snackbar.setAction(
+        R.string.snackbar_uri_override_reminder_change_button,
+        new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+            showFragment(new SettingsFragment());
+          }
+        });
+    snackbar.show();
   }
 }

@@ -13,7 +13,6 @@ import java.util.Set;
 import android.content.Context;
 
 import com.facebook.common.internal.ImmutableList;
-import com.facebook.drawee.backends.pipeline.DrawableFactory;
 import com.facebook.drawee.backends.pipeline.DraweeConfig;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.backends.pipeline.PipelineDraweeControllerBuilder;
@@ -25,6 +24,7 @@ import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.facebook.imagepipeline.decoder.DefaultImageDecoder;
 import com.facebook.imagepipeline.decoder.ImageDecoder;
 import com.facebook.imagepipeline.decoder.ImageDecoderConfig;
+import com.facebook.imagepipeline.drawable.DrawableFactory;
 
 import com.hippo.fresco.large.decoder.ImageRegionDecoderFactory;
 import com.hippo.fresco.large.decoder.SkiaImageRegionDecoderFactory;
